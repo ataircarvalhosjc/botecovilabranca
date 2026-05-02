@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Boteco Villa Branca</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black:   #000;
+      --dark:    #0a0a0a;
+      --surface: #111;
+      --card:    #161616;
+      --border:  #222;
+      --gold:    #B8972A;
+      --gold-l:  #D4AF52;
+      --red:     #c0392b;
+      --green:   #27ae60;
+      --text:    #ccc;
+      --muted:   #555;
+    }
+    html, body { height: 100%; }
+    body { background: var(--black); color: var(--text); font-family: 'Montserrat', sans-serif; font-size: 14px; }
+
+    /* ── TOAST ── */
+    #toast { position:fixed; bottom:2rem; right:2rem; z-index:9999; display:flex; flex-direction:column; gap:.5rem; }
+    .toast-item { padding:.8rem 1.4rem; border-radius:3px; font-size:.8rem; font-weight:600; letter-spacing:.05em; animation: slide-in .3s ease; }
+    .toast-ok  { background:var(--green); color:#fff; }
+    .toast-err { background:var(--red);   color:#fff; }
+    @keyframes slide-in { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:none; } }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(184,151,42,.08) 0%, transparent 70%), var(--black);
+    }
+    .login-box { width:100%; max-width:380px; padding:3rem 2.5rem; border:1px solid var(--border); background:var(--surface); }
+    .login-logo { text-align:center; margin-bottom:2rem; }
+    .login-logo img { width:110px; filter:drop-shadow(0 0 16px rgba(184,151,42,.3)); }
+    .login-title { font-family:'Cinzel',serif; font-size:1rem; color:var(--gold); letter-spacing:.2em; text-align:center; margin-bottom:2rem; }
+    .field { margin-bottom:1.2rem; }
+    .field label { display:block; font-size:.65rem; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--muted); margin-bottom:.5rem; }
+    .field input { width:100%; background:var(--card); border:1px solid var(--border); color:var(--text); padding:.8rem 1rem; font-family:inherit; font-size:.9rem; outline:none; transition:border-color .2s; }
+    .field input:focus { border-color:var(--gold); }
+    .btn { display:block; width:100%; padding:.9rem; background:var(--gold); color:var(--black); font-family:'Cinzel',serif; font-size:.75rem; font-weight:600; letter-spacing:.15em; border:none; cursor:pointer; transition:background .2s; }
+    .btn:hover { background:var(--gold-l); }
+    .btn:disabled { opacity:.5; cursor:not-allowed; }
+    .btn-outline { background:transparent; color:var(--gold); border:1px solid var(--gold); }
+    .btn-outline:hover { background:var(--gold); color:var(--black); }
+    .btn-sm { width:auto; padding:.5rem 1rem; font-size:.65rem; display:inline-block; }
+    .btn-danger { background:var(--red); color:#fff; }
+    .btn-danger:hover { background:#e74c3c; }
+    #login-err { color:var(--red); font-size:.75rem; margin-top:.8rem; text-align:center; min-height:1rem; }
+
+    /* ── ADMIN LAYOUT ── */
+    #admin { display:none; height:100vh; flex-direction:column; }
+
+    /* Top nav */
+    .topnav {
+      height:56px; background:var(--dark); border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; padding:0 1.5rem;
+      flex-shrink:0;
+    }
+    .topnav-logo { display:flex; align-items:center; gap:.8rem; }
+    .topnav-logo img { height:36px; filter:drop-shadow(0 0 8px rgba(184,151,42,.3)); }
+    .topnav-title { font-family:'Cinzel',serif; font-size:.7rem; color:var(--gold); letter-spacing:.2em; }
+    .topnav-right { display:flex; align-items:center; gap:1rem; }
+    .nav-user { font-size:.7rem; color:var(--muted); }
+
+    /* Body layout */
+    .admin-body { display:flex; flex:1; overflow:hidden; }
+
+    /* Sidebar */
+    aside {
+      width:220px; flex-shrink:0; background:var(--dark); border-right:1px solid var(--border);
+      display:flex; flex-direction:column; overflow-y:auto;
+    }
+    .aside-section { padding:1rem 1rem .5rem; font-size:.58rem; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); }
+    .cat-item {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:.7rem 1rem; cursor:pointer; border-left:3px solid transparent;
+      transition:background .15s, border-color .15s; font-size:.82rem; color:var(--text);
+    }
+    .cat-item:hover { background:var(--surface); }
+    .cat-item.active { border-left-color:var(--gold); background:var(--surface); color:var(--gold-l); }
+    .cat-count { font-size:.65rem; background:var(--border); padding:.1rem .4rem; border-radius:10px; color:var(--muted); }
+    .aside-add { padding:.8rem 1rem; border-top:1px solid var(--border); margin-top:auto; }
+
+    /* Main */
+    main { flex:1; overflow-y:auto; padding:1.5rem; }
+    .main-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem; }
+    .main-title { font-family:'Cinzel',serif; font-size:1.1rem; color:var(--gold-l); }
+    .sub-tabs { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .sub-tab { padding:.4rem .9rem; font-size:.65rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; border:1px solid var(--border); color:var(--muted); cursor:pointer; transition:all .2s; }
+    .sub-tab.active, .sub-tab:hover { border-color:var(--gold); color:var(--gold-l); }
+
+    /* Items table */
+    .items-table { width:100%; border-collapse:collapse; }
+    .items-table th { text-align:left; font-size:.6rem; font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:var(--muted); padding:.6rem .8rem; border-bottom:1px solid var(--border); white-space:nowrap; }
+    .items-table td { padding:.7rem .8rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+    .items-table tr:hover td { background:var(--surface); }
+    .item-img { width:48px; height:48px; object-fit:cover; border:1px solid var(--border); }
+    .item-img-placeholder { width:48px; height:48px; background:var(--card); border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:var(--muted); flex-shrink:0; }
+    .item-name { font-size:.9rem; color:var(--text); font-weight:500; }
+    .item-sub { font-size:.7rem; color:var(--muted); margin-top:.15rem; }
+    .item-price { font-family:'Cinzel',serif; color:var(--gold-l); font-size:.9rem; white-space:nowrap; }
+    .badge { display:inline-block; padding:.15rem .5rem; font-size:.6rem; font-weight:700; letter-spacing:.1em; border-radius:2px; }
+    .badge-on  { background:rgba(39,174,96,.15); color:var(--green); border:1px solid rgba(39,174,96,.3); }
+    .badge-off { background:rgba(192,57,43,.12); color:#e74c3c; border:1px solid rgba(192,57,43,.25); }
+    .row-actions { display:flex; gap:.4rem; }
+    .icon-btn { width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--card); cursor:pointer; color:var(--muted); font-size:.85rem; transition:all .2s; flex-shrink:0; }
+    .icon-btn:hover { border-color:var(--gold); color:var(--gold-l); }
+    .icon-btn.danger:hover { border-color:var(--red); color:var(--red); }
+    .empty { text-align:center; padding:4rem 2rem; color:var(--muted); font-size:.85rem; }
+
+    /* Toggle switch */
+    .toggle { position:relative; width:36px; height:20px; cursor:pointer; flex-shrink:0; }
+    .toggle input { opacity:0; width:0; height:0; }
+    .toggle-slider { position:absolute; inset:0; background:var(--border); border-radius:20px; transition:.3s; }
+    .toggle-slider::before { content:''; position:absolute; width:14px; height:14px; left:3px; bottom:3px; background:#888; border-radius:50%; transition:.3s; }
+    .toggle input:checked + .toggle-slider { background:rgba(39,174,96,.3); }
+    .toggle input:checked + .toggle-slider::before { transform:translateX(16px); background:var(--green); }
+
+    /* ── MODAL ── */
+    .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.8); z-index:500; align-items:center; justify-content:center; padding:1rem; }
+    .modal-backdrop.open { display:flex; }
+    .modal-box { background:var(--surface); border:1px solid var(--border); width:100%; max-width:520px; max-height:90vh; overflow-y:auto; }
+    .modal-head { padding:1.2rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .modal-head h2 { font-family:'Cinzel',serif; font-size:.9rem; color:var(--gold-l); letter-spacing:.1em; }
+    .modal-close { background:none; border:none; color:var(--muted); font-size:1.2rem; cursor:pointer; line-height:1; }
+    .modal-close:hover { color:var(--text); }
+    .modal-body { padding:1.5rem; display:flex; flex-direction:column; gap:1.2rem; }
+    .modal-foot { padding:1rem 1.5rem; border-top:1px solid var(--border); display:flex; gap:.8rem; justify-content:flex-end; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    select { width:100%; background:var(--card); border:1px solid var(--border); color:var(--text); padding:.8rem 1rem; font-family:inherit; font-size:.85rem; outline:none; cursor:pointer; }
+    select:focus { border-color:var(--gold); }
+    textarea { width:100%; background:var(--card); border:1px solid var(--border); color:var(--text); padding:.8rem 1rem; font-family:inherit; font-size:.85rem; resize:vertical; min-height:80px; outline:none; }
+    textarea:focus { border-color:var(--gold); }
+
+    /* Image upload area */
+    .img-upload { border:2px dashed var(--border); padding:1.5rem; text-align:center; cursor:pointer; transition:border-color .2s; position:relative; }
+    .img-upload:hover { border-color:var(--gold); }
+    .img-upload input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+    .img-upload-text { font-size:.75rem; color:var(--muted); }
+    .img-preview { width:100%; max-height:180px; object-fit:cover; display:block; margin-top:.8rem; border:1px solid var(--border); }
+
+    /* ── LOADING ── */
+    .spinner { display:inline-block; width:18px; height:18px; border:2px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .loading-row td { text-align:center; padding:2rem; }
+  </style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <img src="logo_boteco-removebg-preview.png" alt="Villa Branca" />
+    </div>
+    <p class="login-title">Painel Administrativo</p>
+    <div class="field">
+      <label>E-mail</label>
+      <input id="login-email" type="email" placeholder="admin@email.com" autocomplete="email" />
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+    <button class="btn" id="login-btn" onclick="doLogin()">Entrar</button>
+    <p id="login-err"></p>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin">
+  <!-- Top Nav -->
+  <nav class="topnav">
+    <div class="topnav-logo">
+      <img src="logo_boteco-removebg-preview.png" alt="" />
+      <span class="topnav-title">ADMIN</span>
+    </div>
+    <div class="topnav-right">
+      <span class="nav-user" id="nav-email"></span>
+      <a href="/" style="font-size:.7rem;color:var(--muted);text-decoration:none;margin-right:.5rem;">Ver site ↗</a>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">Sair</button>
+    </div>
+  </nav>
+
+  <div class="admin-body">
+    <!-- Sidebar -->
+    <aside>
+      <div class="aside-section">Categorias</div>
+      <div id="cat-list"></div>
+      <div class="aside-add">
+        <button class="btn btn-outline btn-sm" style="width:100%" onclick="openCatModal()">+ Nova categoria</button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main>
+      <div class="main-header">
+        <h1 class="main-title" id="main-title">Selecione uma categoria</h1>
+        <div style="display:flex;gap:.6rem;align-items:center;">
+          <button class="btn btn-outline btn-sm" id="btn-add-sub" onclick="openSubModal()" style="display:none">+ Subcategoria</button>
+          <button class="btn btn-sm" id="btn-add-item" onclick="openItemModal()" style="display:none">+ Novo item</button>
+        </div>
+      </div>
+      <div id="sub-tabs" class="sub-tabs"></div>
+      <div id="items-container">
+        <p class="empty">← Selecione uma categoria na barra lateral</p>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ITEM MODAL -->
+<div class="modal-backdrop" id="item-modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="item-modal-title">Novo Item</h2>
+      <button class="modal-close" onclick="closeItemModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="item-id" />
+      <div class="field">
+        <label>Nome do produto</label>
+        <input class="field input" id="item-nome" type="text" placeholder="Ex: Heineken 600ml" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:inherit;font-size:.85rem;outline:none;" />
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Preço (R$)</label>
+          <input id="item-preco" type="number" step="0.01" placeholder="0,00" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:inherit;font-size:.85rem;outline:none;" />
+        </div>
+        <div class="field">
+          <label>Ordem</label>
+          <input id="item-ordem" type="number" placeholder="1" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:inherit;font-size:.85rem;outline:none;" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Subcategoria</label>
+        <select id="item-sub"></select>
+      </div>
+      <div class="field">
+        <label>Imagem do produto</label>
+        <div class="img-upload" id="img-upload-area">
+          <input type="file" id="item-img-file" accept="image/*" onchange="previewImage(event)" />
+          <p class="img-upload-text">Clique ou arraste uma imagem aqui<br><span style="font-size:.65rem;opacity:.6">JPG, PNG, WEBP — máx 5MB</span></p>
+          <img id="item-img-preview" class="img-preview" style="display:none" />
+        </div>
+        <input type="hidden" id="item-imagem-url" />
+      </div>
+      <div style="display:flex;align-items:center;gap:.8rem;">
+        <label class="toggle">
+          <input type="checkbox" id="item-ativo" checked />
+          <span class="toggle-slider"></span>
+        </label>
+        <span style="font-size:.8rem;color:var(--muted)">Item visível no cardápio</span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline btn-sm" onclick="closeItemModal()">Cancelar</button>
+      <button class="btn btn-sm" id="item-save-btn" onclick="saveItem()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY MODAL -->
+<div class="modal-backdrop" id="cat-modal">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-head">
+      <h2 id="cat-modal-title">Nova Categoria</h2>
+      <button class="modal-close" onclick="closeCatModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cat-id" />
+      <div class="field">
+        <label>Nome da categoria</label>
+        <input id="cat-nome" type="text" placeholder="Ex: Cervejas" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:inherit;font-size:.85rem;outline:none;" />
+      </div>
+      <div class="field">
+        <label>Ordem</label>
+        <input id="cat-ordem" type="number" placeholder="1" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:inherit;font-size:.85rem;outline:none;" />
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline btn-sm" onclick="closeCatModal()">Cancelar</button>
+      <button class="btn btn-sm" onclick="saveCat()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUBCATEGORY MODAL -->
+<div class="modal-backdrop" id="sub-modal">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-head">
+      <h2>Nova Subcategoria</h2>
+      <button class="modal-close" onclick="closeSubModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Nome da subcategoria</label>
+        <input id="sub-nome" type="text" placeholder="Ex: 600ml" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:inherit;font-size:.85rem;outline:none;" />
+      </div>
+      <div class="field">
+        <label>Ordem</label>
+        <input id="sub-ordem" type="number" placeholder="1" style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:.8rem 1rem;font-family:inherit;font-size:.85rem;outline:none;" />
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline btn-sm" onclick="closeSubModal()">Cancelar</button>
+      <button class="btn btn-sm" onclick="saveSub()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPA_URL  = 'https://jyeagqmotwcwydwpvzit.supabase.co'
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5ZWFncW1vdHdjd3lkd3B2eml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTA1NTgsImV4cCI6MjA5MTM4NjU1OH0.PAux3smR5A5KTF0q3Jco7PMGHEKTO7c4XYLVZKxf4l0'
+
+const { createClient } = supabase
+const sb = createClient(SUPA_URL, SUPA_ANON)
+
+let cats = [], subs = [], currentCat = null, currentSub = 'all'
+
+// ── AUTH ────────────────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim()
+  const pass  = document.getElementById('login-pass').value
+  const btn   = document.getElementById('login-btn')
+  const err   = document.getElementById('login-err')
+  err.textContent = ''
+  btn.disabled = true
+  btn.textContent = 'Entrando...'
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass })
+  if (error) {
+    err.textContent = 'E-mail ou senha inválidos'
+    btn.disabled = false
+    btn.textContent = 'Entrar'
+  } else {
+    showAdmin()
+  }
+}
+
+async function doLogout() {
+  await sb.auth.signOut()
+  document.getElementById('admin').style.display = 'none'
+  document.getElementById('login-screen').style.display = 'flex'
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin()
+})
+
+async function showAdmin() {
+  const { data: { session } } = await sb.auth.getSession()
+  if (!session) return
+  document.getElementById('login-screen').style.display = 'none'
+  document.getElementById('admin').style.display = 'flex'
+  document.getElementById('admin').style.flexDirection = 'column'
+  document.getElementById('nav-email').textContent = session.user.email
+  await loadCats()
+}
+
+// ── TOAST ────────────────────────────────────────────────────────
+function toast(msg, type = 'ok') {
+  const t = document.getElementById('toast')
+  const el = document.createElement('div')
+  el.className = `toast-item toast-${type}`
+  el.textContent = msg
+  t.appendChild(el)
+  setTimeout(() => el.remove(), 3000)
+}
+
+// ── CATEGORIES ───────────────────────────────────────────────────
+async function loadCats() {
+  const { data } = await sb.from('categorias').select('*').order('ordem')
+  cats = data || []
+  renderCatList()
+}
+
+function renderCatList() {
+  const el = document.getElementById('cat-list')
+  el.innerHTML = cats.map(c => `
+    <div class="cat-item ${currentCat?.id === c.id ? 'active' : ''}" onclick="selectCat('${c.id}')">
+      <span>${c.nome}</span>
+      <span class="cat-count" id="count-${c.id}">—</span>
+    </div>
+  `).join('')
+  cats.forEach(c => loadItemCount(c.id))
+}
+
+async function loadItemCount(catId) {
+  const { count } = await sb.from('itens').select('id', { count: 'exact', head: true }).eq('categoria_id', catId)
+  const el = document.getElementById(`count-${catId}`)
+  if (el) el.textContent = count ?? 0
+}
+
+async function selectCat(catId) {
+  currentCat = cats.find(c => c.id === catId)
+  currentSub = 'all'
+  document.getElementById('main-title').textContent = currentCat.nome
+  document.getElementById('btn-add-item').style.display = 'inline-block'
+  document.getElementById('btn-add-sub').style.display = 'inline-block'
+  renderCatList()
+  await loadSubs()
+  await loadItems()
+}
+
+// ── SUBCATEGORIES ────────────────────────────────────────────────
+async function loadSubs() {
+  if (!currentCat) return
+  const { data } = await sb.from('subcategorias').select('*').eq('categoria_id', currentCat.id).order('ordem')
+  subs = data || []
+  renderSubTabs()
+  renderSubSelect()
+}
+
+function renderSubTabs() {
+  const el = document.getElementById('sub-tabs')
+  if (!subs.length) { el.innerHTML = ''; return }
+  el.innerHTML = `
+    <div class="sub-tab ${currentSub === 'all' ? 'active' : ''}" onclick="filterSub('all')">Todos</div>
+    ${subs.map(s => `<div class="sub-tab ${currentSub === s.id ? 'active' : ''}" onclick="filterSub('${s.id}')">${s.nome}</div>`).join('')}
+    <div class="sub-tab" style="color:var(--red);border-color:transparent;" onclick="deleteSub()">gerenciar −</div>
+  `
+}
+
+function renderSubSelect() {
+  const sel = document.getElementById('item-sub')
+  sel.innerHTML = `<option value="">Sem subcategoria</option>` +
+    subs.map(s => `<option value="${s.id}">${s.nome}</option>`).join('')
+}
+
+async function filterSub(subId) {
+  currentSub = subId
+  renderSubTabs()
+  await loadItems()
+}
+
+// ── ITEMS ────────────────────────────────────────────────────────
+async function loadItems() {
+  if (!currentCat) return
+  const cont = document.getElementById('items-container')
+  cont.innerHTML = `<table class="items-table"><tbody><tr class="loading-row"><td colspan="6"><div class="spinner"></div></td></tr></tbody></table>`
+
+  let q = sb.from('itens').select('*').eq('categoria_id', currentCat.id).order('ordem')
+  if (currentSub !== 'all') q = q.eq('subcategoria_id', currentSub)
+
+  const { data, error } = await q
+  if (error) { toast('Erro ao carregar itens', 'err'); return }
+
+  if (!data.length) {
+    cont.innerHTML = `<p class="empty">Nenhum item nesta categoria.<br>Clique em "+ Novo item" para adicionar.</p>`
+    return
+  }
+
+  const subMap = {}
+  subs.forEach(s => subMap[s.id] = s.nome)
+
+  cont.innerHTML = `
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>Imagem</th>
+          <th>Nome</th>
+          <th>Subcategoria</th>
+          <th>Preço</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.map(item => `
+          <tr id="row-${item.id}">
+            <td>${item.imagem_url
+              ? `<img src="${item.imagem_url}" class="item-img" />`
+              : `<div class="item-img-placeholder">📷</div>`}
+            </td>
+            <td>
+              <div class="item-name">${item.nome}</div>
+            </td>
+            <td style="color:var(--muted);font-size:.78rem">${subMap[item.subcategoria_id] || '—'}</td>
+            <td class="item-price">R$ ${Number(item.preco).toFixed(2).replace('.', ',')}</td>
+            <td>
+              <label class="toggle" onclick="toggleAtivo('${item.id}', ${!item.ativo})">
+                <input type="checkbox" ${item.ativo ? 'checked' : ''} readonly />
+                <span class="toggle-slider"></span>
+              </label>
+            </td>
+            <td>
+              <div class="row-actions">
+                <button class="icon-btn" onclick='editItem(${JSON.stringify(item).replace(/'/g,"&#39;")})' title="Editar">✏️</button>
+                <button class="icon-btn danger" onclick="deleteItem('${item.id}')" title="Excluir">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `
+  loadItemCount(currentCat.id)
+}
+
+async function toggleAtivo(id, novoValor) {
+  const { error } = await sb.from('itens').update({ ativo: novoValor }).eq('id', id)
+  if (error) { toast('Erro ao atualizar', 'err'); return }
+  await loadItems()
+}
+
+async function deleteItem(id) {
+  if (!confirm('Excluir este item? Esta ação não pode ser desfeita.')) return
+  const { error } = await sb.from('itens').delete().eq('id', id)
+  if (error) { toast('Erro ao excluir', 'err'); return }
+  toast('Item excluído')
+  await loadItems()
+}
+
+// ── ITEM MODAL ───────────────────────────────────────────────────
+function openItemModal() {
+  document.getElementById('item-id').value = ''
+  document.getElementById('item-nome').value = ''
+  document.getElementById('item-preco').value = ''
+  document.getElementById('item-ordem').value = ''
+  document.getElementById('item-sub').value = ''
+  document.getElementById('item-ativo').checked = true
+  document.getElementById('item-imagem-url').value = ''
+  document.getElementById('item-img-preview').style.display = 'none'
+  document.getElementById('item-img-file').value = ''
+  document.getElementById('item-modal-title').textContent = 'Novo Item'
+  document.getElementById('item-modal').classList.add('open')
+}
+
+function editItem(item) {
+  document.getElementById('item-id').value = item.id
+  document.getElementById('item-nome').value = item.nome
+  document.getElementById('item-preco').value = item.preco
+  document.getElementById('item-ordem').value = item.ordem
+  document.getElementById('item-sub').value = item.subcategoria_id || ''
+  document.getElementById('item-ativo').checked = item.ativo
+  document.getElementById('item-imagem-url').value = item.imagem_url || ''
+  const prev = document.getElementById('item-img-preview')
+  if (item.imagem_url) { prev.src = item.imagem_url; prev.style.display = 'block' }
+  else { prev.style.display = 'none' }
+  document.getElementById('item-modal-title').textContent = 'Editar Item'
+  document.getElementById('item-modal').classList.add('open')
+}
+
+function closeItemModal() {
+  document.getElementById('item-modal').classList.remove('open')
+}
+
+function previewImage(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  const prev = document.getElementById('item-img-preview')
+  prev.src = URL.createObjectURL(file)
+  prev.style.display = 'block'
+}
+
+async function saveItem() {
+  const btn  = document.getElementById('item-save-btn')
+  const id   = document.getElementById('item-id').value
+  const nome = document.getElementById('item-nome').value.trim()
+  const preco = parseFloat(document.getElementById('item-preco').value)
+  const ordem = parseInt(document.getElementById('item-ordem').value) || 0
+  const subId = document.getElementById('item-sub').value || null
+  const ativo = document.getElementById('item-ativo').checked
+  const file  = document.getElementById('item-img-file').files[0]
+  let imagem_url = document.getElementById('item-imagem-url').value || null
+
+  if (!nome || isNaN(preco)) { toast('Preencha nome e preço', 'err'); return }
+
+  btn.disabled = true
+  btn.textContent = 'Salvando...'
+
+  // Upload imagem se houver
+  if (file) {
+    const ext = file.name.split('.').pop()
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    const { error: upErr } = await sb.storage.from('cardapio').upload(path, file)
+    if (upErr) { toast('Erro no upload da imagem', 'err'); btn.disabled=false; btn.textContent='Salvar'; return }
+    const { data: { publicUrl } } = sb.storage.from('cardapio').getPublicUrl(path)
+    imagem_url = publicUrl
+  }
+
+  const payload = {
+    categoria_id: currentCat.id,
+    subcategoria_id: subId,
+    nome, preco, ordem, ativo, imagem_url,
+    updated_at: new Date().toISOString()
+  }
+
+  let error
+  if (id) {
+    ;({ error } = await sb.from('itens').update(payload).eq('id', id))
+  } else {
+    ;({ error } = await sb.from('itens').insert(payload))
+  }
+
+  btn.disabled = false
+  btn.textContent = 'Salvar'
+
+  if (error) { toast('Erro ao salvar: ' + error.message, 'err'); return }
+  toast(id ? 'Item atualizado!' : 'Item criado!')
+  closeItemModal()
+  await loadItems()
+}
+
+// ── CATEGORY MODAL ───────────────────────────────────────────────
+function openCatModal(cat) {
+  document.getElementById('cat-id').value = cat?.id || ''
+  document.getElementById('cat-nome').value = cat?.nome || ''
+  document.getElementById('cat-ordem').value = cat?.ordem || (cats.length + 1)
+  document.getElementById('cat-modal-title').textContent = cat ? 'Editar Categoria' : 'Nova Categoria'
+  document.getElementById('cat-modal').classList.add('open')
+}
+
+function closeCatModal() { document.getElementById('cat-modal').classList.remove('open') }
+
+async function saveCat() {
+  const id    = document.getElementById('cat-id').value
+  const nome  = document.getElementById('cat-nome').value.trim()
+  const ordem = parseInt(document.getElementById('cat-ordem').value) || 1
+  if (!nome) { toast('Digite o nome da categoria', 'err'); return }
+
+  let error
+  if (id) {
+    ;({ error } = await sb.from('categorias').update({ nome, ordem }).eq('id', id))
+  } else {
+    ;({ error } = await sb.from('categorias').insert({ nome, ordem }))
+  }
+
+  if (error) { toast('Erro: ' + error.message, 'err'); return }
+  toast('Categoria salva!')
+  closeCatModal()
+  await loadCats()
+}
+
+// ── SUBCATEGORY MODAL ────────────────────────────────────────────
+function openSubModal() {
+  document.getElementById('sub-nome').value = ''
+  document.getElementById('sub-ordem').value = subs.length + 1
+  document.getElementById('sub-modal').classList.add('open')
+}
+
+function closeSubModal() { document.getElementById('sub-modal').classList.remove('open') }
+
+async function saveSub() {
+  const nome  = document.getElementById('sub-nome').value.trim()
+  const ordem = parseInt(document.getElementById('sub-ordem').value) || 1
+  if (!nome || !currentCat) return
+  const { error } = await sb.from('subcategorias').insert({ categoria_id: currentCat.id, nome, ordem })
+  if (error) { toast('Erro: ' + error.message, 'err'); return }
+  toast('Subcategoria criada!')
+  closeSubModal()
+  await loadSubs()
+  await loadItems()
+}
+
+async function deleteSub() {
+  if (!subs.length) return
+  const nome = prompt('Digite o nome da subcategoria para excluir:\n' + subs.map(s => '• ' + s.nome).join('\n'))
+  if (!nome) return
+  const sub = subs.find(s => s.nome.toLowerCase() === nome.toLowerCase())
+  if (!sub) { toast('Subcategoria não encontrada', 'err'); return }
+  if (!confirm(`Excluir "${sub.nome}"? Os itens ficarão sem subcategoria.`)) return
+  await sb.from('itens').update({ subcategoria_id: null }).eq('subcategoria_id', sub.id)
+  const { error } = await sb.from('subcategorias').delete().eq('id', sub.id)
+  if (error) { toast('Erro ao excluir', 'err'); return }
+  toast('Subcategoria excluída')
+  await loadSubs()
+  await loadItems()
+}
+
+// ── CLOSE MODALS ON BACKDROP ─────────────────────────────────────
+document.querySelectorAll('.modal-backdrop').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open') })
+})
+
+// ── INIT ─────────────────────────────────────────────────────────
+sb.auth.onAuthStateChange((event, session) => {
+  if (session) showAdmin()
+})
+
+;(async () => {
+  const { data: { session } } = await sb.auth.getSession()
+  if (session) showAdmin()
+})()
+</script>
+</body>
+</html>
