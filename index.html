@@ -606,12 +606,102 @@
     /* ── REVEAL ────────────────────────────────────────────────── */
     .reveal {
       opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
+      transform: translateY(30px);
+      transition: opacity 0.75s cubic-bezier(0.22,1,0.36,1), transform 0.75s cubic-bezier(0.22,1,0.36,1);
     }
+    .reveal.from-left  { transform: translateX(-40px); }
+    .reveal.from-right { transform: translateX(40px); }
     .reveal.visible {
       opacity: 1;
       transform: none;
+    }
+
+    /* ── HERO ANIMATIONS ───────────────────────────────────────── */
+    @keyframes breathe {
+      0%, 100% { opacity: 0.07; transform: scale(1); }
+      50%       { opacity: 0.13; transform: scale(1.08); }
+    }
+    .hero::before { animation: breathe 6s ease-in-out infinite; }
+
+    @keyframes logo-float {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-6px); }
+    }
+    .hero-logo-wrap img { animation: logo-float 4s ease-in-out infinite; }
+
+    /* Hero title word entrance */
+    .hero-title .boteco,
+    .hero-title .villa,
+    .hero-title .branca {
+      display: block;
+      overflow: hidden;
+    }
+    .word-inner {
+      display: block;
+      animation: word-up 1s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    .hero-title .boteco .word-inner  { animation-delay: 0.1s; }
+    .hero-title .villa  .word-inner  { animation-delay: 0.25s; }
+    .hero-title .branca .word-inner  { animation-delay: 0.4s; }
+    @keyframes word-up {
+      from { transform: translateY(110%); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .hero-eyebrow, .hero-tagline, .hero-address, .hero-ornament, .btn-wpp {
+      animation: fade-in-up 0.9s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    .hero-eyebrow  { animation-delay: 0.55s; }
+    .hero-ornament { animation-delay: 0.65s; }
+    .hero-tagline  { animation-delay: 0.75s; }
+    .hero-address  { animation-delay: 0.85s; }
+    .btn-wpp       { animation-delay: 0.95s; }
+    @keyframes fade-in-up {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── SHIMMER ON PRICES ─────────────────────────────────────── */
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position:  200% center; }
+    }
+    .drink-price, .porcao-price, .caip-price, .refri-price {
+      background: linear-gradient(90deg, var(--gold) 30%, var(--gold-pale) 50%, var(--gold) 70%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .drink-row:hover .drink-price,
+    .porcao-card:hover .porcao-price,
+    .caip-card:hover .caip-price,
+    .refri-card:hover .refri-price {
+      animation: shimmer 1.2s linear infinite;
+    }
+
+    /* ── NAV SCROLLED ──────────────────────────────────────────── */
+    nav { transition: box-shadow 0.4s, border-color 0.4s; }
+    nav.scrolled {
+      box-shadow: 0 4px 32px rgba(0,0,0,0.7);
+      border-bottom-color: rgba(184,151,42,0.25);
+    }
+
+    /* ── SECTION LINE DRAW ─────────────────────────────────────── */
+    .section-header.visible .line {
+      animation: draw-line 0.8s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes draw-line {
+      from { transform: scaleX(0); transform-origin: left; }
+      to   { transform: scaleX(1); transform-origin: left; }
+    }
+
+    /* ── CANVAS PARTICLES ──────────────────────────────────────── */
+    #particles {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
     }
 
     /* ── RESPONSIVE ────────────────────────────────────────────── */
@@ -644,6 +734,7 @@
 
   <!-- HERO -->
   <header class="hero" id="hero">
+    <canvas id="particles"></canvas>
     <div class="hero-logo-wrap">
       <img src="logo_boteco-removebg-preview.png" alt="Boteco Villa Branca" />
     </div>
@@ -651,9 +742,9 @@
       <div class="hero-rule-top"></div>
       <p class="hero-eyebrow">Jacareí &nbsp;·&nbsp; São Paulo &nbsp;·&nbsp; Brasil</p>
       <h1 class="hero-title">
-        <span class="boteco">Boteco</span>
-        <span class="villa">Villa</span>
-        <span class="branca">Branca</span>
+        <span class="boteco"><span class="word-inner">Boteco</span></span>
+        <span class="villa"><span class="word-inner">Villa</span></span>
+        <span class="branca"><span class="word-inner">Branca</span></span>
       </h1>
       <div class="hero-ornament">
         <span class="line"></span>
@@ -841,13 +932,84 @@
   </footer>
 
   <script>
-    // Scroll reveal
+    // ── PARTICLES ────────────────────────────────────────────────
+    (function () {
+      const canvas = document.getElementById('particles');
+      const ctx = canvas.getContext('2d');
+      let W, H, particles = [];
+
+      function resize() {
+        W = canvas.width  = canvas.offsetWidth;
+        H = canvas.height = canvas.offsetHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      const GOLD = [[184,151,42],[212,175,82],[232,204,122]];
+
+      for (let i = 0; i < 55; i++) {
+        const c = GOLD[Math.floor(Math.random() * GOLD.length)];
+        particles.push({
+          x: Math.random() * 1000,
+          y: Math.random() * 1000,
+          r: Math.random() * 1.6 + 0.4,
+          vx: (Math.random() - 0.5) * 0.25,
+          vy: (Math.random() - 0.5) * 0.25 - 0.1,
+          a: Math.random(),
+          va: (Math.random() * 0.004 + 0.001) * (Math.random() < 0.5 ? 1 : -1),
+          c
+        });
+      }
+
+      let mx = 0, my = 0;
+      document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        particles.forEach(p => {
+          p.x  += p.vx + (mx / W - 0.5) * 0.04;
+          p.y  += p.vy + (my / H - 0.5) * 0.04;
+          p.a  += p.va;
+          if (p.a > 1 || p.a < 0) p.va *= -1;
+          if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+          if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+          ctx.beginPath();
+          ctx.arc(p.x % W, p.y % H, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${p.c[0]},${p.c[1]},${p.c[2]},${p.a * 0.6})`;
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // ── HERO PARALLAX ────────────────────────────────────────────
+    const heroContent = document.querySelector('.hero-content');
+    const heroLogo    = document.querySelector('.hero-logo-wrap');
+    document.addEventListener('mousemove', e => {
+      const dx = (e.clientX / window.innerWidth  - 0.5) * 18;
+      const dy = (e.clientY / window.innerHeight - 0.5) * 12;
+      heroContent.style.transform = `translate(${dx * 0.4}px, ${dy * 0.4}px)`;
+      if (heroLogo) heroLogo.style.transform = `translate(${dx * 0.6}px, ${dy * 0.6}px)`;
+    });
+
+    // ── NAV SCROLL STATE ─────────────────────────────────────────
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 60);
+    }, { passive: true });
+
+    // ── SCROLL REVEAL (stagger + directions) ─────────────────────
+    document.querySelectorAll('.porcao-card').forEach((el, i) => {
+      el.classList.add('reveal', i % 2 === 0 ? 'from-left' : 'from-right');
+    });
+
     const io = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (e.isIntersecting) {
           const siblings = [...e.target.parentElement.querySelectorAll('.reveal')];
           const i = siblings.indexOf(e.target);
-          e.target.style.transitionDelay = (i * 0.06) + 's';
+          e.target.style.transitionDelay = (i * 0.07) + 's';
           e.target.classList.add('visible');
           io.unobserve(e.target);
         }
@@ -856,10 +1018,23 @@
 
     document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-    // Active nav
+    // ── CARD TILT (porções) ───────────────────────────────────────
+    document.querySelectorAll('.porcao-card, .caip-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const r  = card.getBoundingClientRect();
+        const x  = ((e.clientX - r.left) / r.width  - 0.5) * 14;
+        const y  = ((e.clientY - r.top)  / r.height - 0.5) * 14;
+        card.style.transform = `perspective(600px) rotateY(${x}deg) rotateX(${-y}deg) translateY(-4px)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+      });
+    });
+
+    // ── ACTIVE NAV ───────────────────────────────────────────────
     const sections = document.querySelectorAll('section[id]');
-    const navAs = document.querySelectorAll('.nav-links a');
-    const navIo = new IntersectionObserver((entries) => {
+    const navAs    = document.querySelectorAll('.nav-links a');
+    const navIo    = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (e.isIntersecting) {
           navAs.forEach(a => a.classList.remove('active'));
@@ -870,7 +1045,7 @@
     }, { rootMargin: '-40% 0px -50% 0px' });
     sections.forEach(s => navIo.observe(s));
 
-    // Smooth scroll with offset
+    // ── SMOOTH SCROLL ────────────────────────────────────────────
     document.querySelectorAll('a[href^="#"]').forEach(a => {
       a.addEventListener('click', e => {
         const t = document.querySelector(a.getAttribute('href'));
