@@ -16,6 +16,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Montserrat:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet" />
 
   <style>
@@ -706,6 +707,25 @@
       to   { transform: scaleX(1); transform-origin: left; }
     }
 
+    /* ── SPIN ─────────────────────────────────────────────────── */
+    @keyframes _spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── ITEM IMAGE ────────────────────────────────────────────── */
+    .item-img {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 2px;
+      border: 1px solid var(--border-mid);
+      flex-shrink: 0;
+    }
+    .porcao-card .item-img {
+      width: 64px;
+      height: 64px;
+    }
+
     /* ── CANVAS PARTICLES ──────────────────────────────────────── */
     #particles {
       position: absolute;
@@ -732,13 +752,7 @@
   <nav id="nav">
     <div class="nav-inner">
       <a href="#hero" class="nav-brand">VILLA BRANCA</a>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#cervejas">Cervejas</a></li>
-        <li><a href="#doses">Doses &amp; Whisky</a></li>
-        <li><a href="#caipirinhas">Caipirinhas</a></li>
-        <li><a href="#porcoes">Porções</a></li>
-        <li><a href="#refri">Refrigerantes</a></li>
-      </ul>
+      <ul class="nav-links" id="navLinks"></ul>
     </div>
   </nav>
 
@@ -775,147 +789,13 @@
   </header>
 
   <!-- MAIN -->
-  <main>
-
-    <!-- CERVEJAS -->
-    <section class="section" id="cervejas">
-      <div class="section-header reveal">
-        <span class="line"></span>
-        <div class="section-title-wrap">
-          <span class="section-num">01</span>
-          <h2 class="section-title">Cervejas</h2>
-        </div>
-        <span class="line"></span>
-      </div>
-
-      <div class="subsection reveal">
-        <p class="sub-label">600 ml</p>
-        <div class="drink-row"><span class="drink-name">Amstel</span><span class="drink-dots"></span><span class="drink-price">R$ 10,99</span></div>
-        <div class="drink-row"><span class="drink-name">Original</span><span class="drink-dots"></span><span class="drink-price">R$ 13,00</span></div>
-        <div class="drink-row"><span class="drink-name">Heineken</span><span class="drink-dots"></span><span class="drink-price">R$ 14,99</span></div>
-        <div class="drink-row"><span class="drink-name">Antártica</span><span class="drink-dots"></span><span class="drink-price">R$ 11,99</span></div>
-      </div>
-
-      <div class="subsection reveal">
-        <p class="sub-label">Long Neck</p>
-        <div class="drink-row"><span class="drink-name">Heineken</span><span class="drink-dots"></span><span class="drink-price">R$ 12,00</span></div>
-        <div class="drink-row"><span class="drink-name">Budweiser</span><span class="drink-dots"></span><span class="drink-price">R$ 8,00</span></div>
-        <div class="drink-row"><span class="drink-name">Corona</span><span class="drink-dots"></span><span class="drink-price">R$ 12,00</span></div>
-      </div>
-
-      <div class="subsection reveal">
-        <p class="sub-label">Lata</p>
-        <div class="drink-row"><span class="drink-name">Skol 350 ml</span><span class="drink-dots"></span><span class="drink-price">R$ 6,00</span></div>
-        <div class="drink-row"><span class="drink-name">Skol 269 ml</span><span class="drink-dots"></span><span class="drink-price">R$ 5,00</span></div>
-        <div class="drink-row"><span class="drink-name">Heineken lata</span><span class="drink-dots"></span><span class="drink-price">R$ 8,00</span></div>
-      </div>
+  <main id="cardapio-main">
+    <section class="section" id="_loading" style="text-align:center;padding:6rem 2rem">
+      <div style="width:36px;height:36px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:_spin .7s linear infinite;margin:0 auto 1rem"></div>
+      <p style="color:var(--muted);font-size:.8rem;letter-spacing:.1em">Carregando cardápio...</p>
     </section>
-
-    <!-- DOSES & WHISKY -->
-    <section class="section" id="doses">
-      <div class="section-header reveal">
-        <span class="line"></span>
-        <div class="section-title-wrap">
-          <span class="section-num">02</span>
-          <h2 class="section-title">Doses &amp; Whisky</h2>
-        </div>
-        <span class="line"></span>
-      </div>
-
-      <div class="subsection reveal">
-        <p class="sub-label">Doses</p>
-        <div class="drink-row"><span class="drink-name">Amarelinha</span><span class="drink-dots"></span><span class="drink-price">R$ 3,00</span></div>
-        <div class="drink-row"><span class="drink-name">Dreher</span><span class="drink-dots"></span><span class="drink-price">R$ 5,00</span></div>
-        <div class="drink-row"><span class="drink-name">Campari</span><span class="drink-dots"></span><span class="drink-price">R$ 14,00</span></div>
-        <div class="drink-row"><span class="drink-name">Contini</span><span class="drink-dots"></span><span class="drink-price">R$ 6,00</span></div>
-        <div class="drink-row"><span class="drink-name">Martini</span><span class="drink-dots"></span><span class="drink-price">R$ 6,00</span></div>
-        <div class="drink-row"><span class="drink-name">Seleta</span><span class="drink-dots"></span><span class="drink-price">R$ 8,00</span></div>
-      </div>
-
-      <div class="subsection reveal">
-        <p class="sub-label">Whisky</p>
-        <div class="drink-row"><span class="drink-name">Passaporte</span><span class="drink-dots"></span><span class="drink-price">R$ 15,00</span></div>
-        <div class="drink-row"><span class="drink-name">Whitehorse</span><span class="drink-dots"></span><span class="drink-price">R$ 15,00</span></div>
-        <div class="drink-row"><span class="drink-name">Jack Daniel's</span><span class="drink-dots"></span><span class="drink-price">R$ 30,00</span></div>
-        <div class="drink-row"><span class="drink-name">Jack Daniel's maçã verde</span><span class="drink-dots"></span><span class="drink-price">R$ 35,00</span></div>
-      </div>
-    </section>
-
-    <!-- CAIPIRINHAS -->
-    <section class="section" id="caipirinhas">
-      <div class="section-header reveal">
-        <span class="line"></span>
-        <div class="section-title-wrap">
-          <span class="section-num">03</span>
-          <h2 class="section-title">Caipirinhas</h2>
-        </div>
-        <span class="line"></span>
-      </div>
-
-      <div class="caip-grid reveal">
-        <div class="caip-card">
-          <p class="caip-name">Cachaça</p>
-          <p class="caip-price">R$ 18,00</p>
-        </div>
-        <div class="caip-card">
-          <p class="caip-name">Vodka</p>
-          <p class="caip-price">R$ 23,00</p>
-        </div>
-        <div class="caip-card">
-          <p class="caip-name">Saquê</p>
-          <p class="caip-price">R$ 20,00</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- PORÇÕES -->
-    <section class="section" id="porcoes">
-      <div class="section-header reveal">
-        <span class="line"></span>
-        <div class="section-title-wrap">
-          <span class="section-num">04</span>
-          <h2 class="section-title">Porções</h2>
-        </div>
-        <span class="line"></span>
-      </div>
-
-      <div class="porcoes-grid">
-        <div class="porcao-card reveal"><span class="porcao-name">Contra filé com fritas</span><span class="porcao-price">R$ 75,00</span></div>
-        <div class="porcao-card reveal"><span class="porcao-name">Calabresa com fritas</span><span class="porcao-price">R$ 39,00</span></div>
-        <div class="porcao-card reveal"><span class="porcao-name">Fritas</span><span class="porcao-price">R$ 25,00</span></div>
-        <div class="porcao-card reveal"><span class="porcao-name">Fritas com Bacon</span><span class="porcao-price">R$ 30,00</span></div>
-        <div class="porcao-card reveal"><span class="porcao-name">Fritas com cheddar e Bacon</span><span class="porcao-price">R$ 35,00</span></div>
-        <div class="porcao-card reveal"><span class="porcao-name">Fritas com catupiry e Bacon</span><span class="porcao-price">R$ 35,00</span></div>
-        <div class="porcao-card reveal"><span class="porcao-name">Mandioca</span><span class="porcao-price">R$ 25,00</span></div>
-        <div class="porcao-card reveal"><span class="porcao-name">Salame</span><span class="porcao-price">R$ 25,00</span></div>
-        <div class="porcao-card reveal"><span class="porcao-name">Tulipa de frango</span><span class="porcao-price">R$ 49,00</span></div>
-        <div class="porcao-card reveal"><span class="porcao-name">Tilápia</span><span class="porcao-price">R$ 60,00</span></div>
-        <div class="porcao-card reveal"><span class="porcao-name">Camarão</span><span class="porcao-price">R$ 70,00</span></div>
-        <div class="porcao-card reveal"><span class="porcao-name">Malha</span><span class="porcao-price">R$ 12,00</span></div>
-        <div class="porcao-card reveal"><span class="porcao-name">Dobradinha</span><span class="porcao-price">R$ 20,00</span></div>
-        <div class="porcao-card reveal"><span class="porcao-name">Torresmo</span><span class="porcao-price">R$ 25,00</span></div>
-      </div>
-    </section>
-
-    <!-- REFRIGERANTES -->
-    <section class="section" id="refri">
-      <div class="section-header reveal">
-        <span class="line"></span>
-        <div class="section-title-wrap">
-          <span class="section-num">05</span>
-          <h2 class="section-title">Refrigerantes</h2>
-        </div>
-        <span class="line"></span>
-      </div>
-
-      <div class="refri-grid reveal">
-        <div class="refri-card"><span class="refri-name">Coca-Cola lata</span><span class="refri-price">R$ 7,00</span></div>
-        <div class="refri-card"><span class="refri-name">Coca-Cola 600 ml</span><span class="refri-price">R$ 9,00</span></div>
-        <div class="refri-card"><span class="refri-name">Guaraná lata</span><span class="refri-price">R$ 7,00</span></div>
-        <div class="refri-card"><span class="refri-name">Fanta lata</span><span class="refri-price">R$ 7,00</span></div>
-      </div>
-    </section>
-
+    <!-- CONTEÚDO DINÂMICO INJETADO PELO JS -->
+    <div id="seccoes-dinamicas"></div>
   </main>
 
   <!-- FOOTER -->
@@ -942,26 +822,28 @@
   </footer>
 
   <script>
+    // ── SUPABASE ─────────────────────────────────────────────────
+    const { createClient } = supabase;
+    const SUPA_URL  = 'https://jyeagqmotwcwydwpvzit.supabase.co';
+    const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5ZWFncW1vdHdjd3lkd3B2eml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTA1NTgsImV4cCI6MjA5MTM4NjU1OH0.PAux3smR5A5KTF0q3Jco7PMGHEKTO7c4XYLVZKxf4l0';
+    const sb = createClient(SUPA_URL, SUPA_ANON);
+
     // ── PARTICLES ────────────────────────────────────────────────
     (function () {
       const canvas = document.getElementById('particles');
       const ctx = canvas.getContext('2d');
       let W, H, particles = [];
-
       function resize() {
         W = canvas.width  = canvas.offsetWidth;
         H = canvas.height = canvas.offsetHeight;
       }
       resize();
       window.addEventListener('resize', resize);
-
       const GOLD = [[184,151,42],[212,175,82],[232,204,122]];
-
       for (let i = 0; i < 55; i++) {
         const c = GOLD[Math.floor(Math.random() * GOLD.length)];
         particles.push({
-          x: Math.random() * 1000,
-          y: Math.random() * 1000,
+          x: Math.random() * 1000, y: Math.random() * 1000,
           r: Math.random() * 1.6 + 0.4,
           vx: (Math.random() - 0.5) * 0.25,
           vy: (Math.random() - 0.5) * 0.25 - 0.1,
@@ -970,16 +852,14 @@
           c
         });
       }
-
       let mx = 0, my = 0;
       document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-
       function draw() {
         ctx.clearRect(0, 0, W, H);
         particles.forEach(p => {
-          p.x  += p.vx + (mx / W - 0.5) * 0.04;
-          p.y  += p.vy + (my / H - 0.5) * 0.04;
-          p.a  += p.va;
+          p.x += p.vx + (mx / W - 0.5) * 0.04;
+          p.y += p.vy + (my / H - 0.5) * 0.04;
+          p.a += p.va;
           if (p.a > 1 || p.a < 0) p.va *= -1;
           if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
           if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
@@ -1009,60 +889,197 @@
       nav.classList.toggle('scrolled', window.scrollY > 60);
     }, { passive: true });
 
-    // ── SCROLL REVEAL (stagger + directions) ─────────────────────
-    document.querySelectorAll('.porcao-card').forEach((el, i) => {
-      el.classList.add('reveal', i % 2 === 0 ? 'from-left' : 'from-right');
-    });
+    // ── PRICE FORMAT ─────────────────────────────────────────────
+    function fmtPrice(v) {
+      return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          const siblings = [...e.target.parentElement.querySelectorAll('.reveal')];
-          const i = siblings.indexOf(e.target);
-          e.target.style.transitionDelay = (i * 0.07) + 's';
-          e.target.classList.add('visible');
-          io.unobserve(e.target);
+    // ── RENDER ───────────────────────────────────────────────────
+    async function renderCardapio() {
+      // Busca tudo em paralelo
+      const [{ data: cats }, { data: subs }, { data: items }] = await Promise.all([
+        sb.from('categorias').select('*').order('ordem'),
+        sb.from('subcategorias').select('*').order('ordem'),
+        sb.from('itens').select('*').eq('ativo', true).order('ordem').order('nome')
+      ]);
+
+      const loading   = document.getElementById('_loading');
+      const container = document.getElementById('seccoes-dinamicas');
+      const navLinks  = document.getElementById('navLinks');
+
+      if (!cats || cats.length === 0) {
+        loading.innerHTML = '<p style="color:var(--muted);font-size:.85rem;letter-spacing:.08em">Cardápio em atualização...</p>';
+        return;
+      }
+
+      // Mapas auxiliares
+      const subsMap  = {};   // categoria_id → [sub, ...]
+      const itemsBySub = {}; // subcategoria_id → [item, ...]
+      const itemsNosub = {}; // categoria_id → [item, ...] (sem sub)
+
+      subs.forEach(s => {
+        if (!subsMap[s.categoria_id]) subsMap[s.categoria_id] = [];
+        subsMap[s.categoria_id].push(s);
+      });
+
+      items.forEach(it => {
+        if (it.subcategoria_id) {
+          if (!itemsBySub[it.subcategoria_id]) itemsBySub[it.subcategoria_id] = [];
+          itemsBySub[it.subcategoria_id].push(it);
+        } else {
+          if (!itemsNosub[it.categoria_id]) itemsNosub[it.categoria_id] = [];
+          itemsNosub[it.categoria_id].push(it);
         }
       });
-    }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
 
-    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+      let html = '';
 
-    // ── CARD TILT (porções) ───────────────────────────────────────
-    document.querySelectorAll('.porcao-card, .caip-card').forEach(card => {
-      card.addEventListener('mousemove', e => {
-        const r  = card.getBoundingClientRect();
-        const x  = ((e.clientX - r.left) / r.width  - 0.5) * 14;
-        const y  = ((e.clientY - r.top)  / r.height - 0.5) * 14;
-        card.style.transform = `perspective(600px) rotateY(${x}deg) rotateX(${-y}deg) translateY(-4px)`;
-      });
-      card.addEventListener('mouseleave', () => {
-        card.style.transform = '';
-      });
-    });
+      cats.forEach((cat, idx) => {
+        const slug = cat.slug || cat.nome.toLowerCase().replace(/\s+/g, '-');
+        const num  = String(idx + 1).padStart(2, '0');
+        const hasSubs = subsMap[cat.id] && subsMap[cat.id].length > 0;
 
-    // ── ACTIVE NAV ───────────────────────────────────────────────
-    const sections = document.querySelectorAll('section[id]');
-    const navAs    = document.querySelectorAll('.nav-links a');
-    const navIo    = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          navAs.forEach(a => a.classList.remove('active'));
-          const a = document.querySelector(`.nav-links a[href="#${e.target.id}"]`);
-          if (a) a.classList.add('active');
+        html += `<section class="section" id="${slug}">
+  <div class="section-header reveal">
+    <span class="line"></span>
+    <div class="section-title-wrap">
+      <span class="section-num">${num}</span>
+      <h2 class="section-title">${cat.nome}</h2>
+    </div>
+    <span class="line"></span>
+  </div>`;
+
+        if (hasSubs) {
+          // Categoria com subcategorias → drink-rows por sub
+          subsMap[cat.id].forEach(sub => {
+            const subItems = itemsBySub[sub.id] || [];
+            if (subItems.length === 0) return;
+            html += `<div class="subsection reveal">
+  <p class="sub-label">${sub.nome}</p>`;
+            subItems.forEach(it => {
+              const imgHtml = it.imagem_url
+                ? `<img class="item-img" src="${it.imagem_url}" alt="${it.nome}" loading="lazy">`
+                : '';
+              html += `<div class="drink-row">
+  ${imgHtml}
+  <span class="drink-name">${it.nome}</span>
+  <span class="drink-dots"></span>
+  <span class="drink-price">${fmtPrice(it.preco)}</span>
+</div>`;
+            });
+            html += `</div>`;
+          });
+
+          // Itens da categoria sem sub (edge case)
+          const nosub = itemsNosub[cat.id] || [];
+          if (nosub.length > 0) {
+            html += `<div class="subsection reveal">`;
+            nosub.forEach(it => {
+              const imgHtml = it.imagem_url
+                ? `<img class="item-img" src="${it.imagem_url}" alt="${it.nome}" loading="lazy">`
+                : '';
+              html += `<div class="drink-row">
+  ${imgHtml}
+  <span class="drink-name">${it.nome}</span>
+  <span class="drink-dots"></span>
+  <span class="drink-price">${fmtPrice(it.preco)}</span>
+</div>`;
+            });
+            html += `</div>`;
+          }
+
+        } else {
+          // Categoria SEM subcategorias → porcao-card grid
+          const catItems = itemsNosub[cat.id] || [];
+          if (catItems.length > 0) {
+            html += `<div class="porcoes-grid">`;
+            catItems.forEach(it => {
+              const imgHtml = it.imagem_url
+                ? `<img class="item-img" src="${it.imagem_url}" alt="${it.nome}" loading="lazy" style="margin-right:.8rem">`
+                : '';
+              html += `<div class="porcao-card reveal">
+  ${imgHtml}
+  <span class="porcao-name">${it.nome}</span>
+  <span class="porcao-price">${fmtPrice(it.preco)}</span>
+</div>`;
+            });
+            html += `</div>`;
+          }
         }
-      });
-    }, { rootMargin: '-40% 0px -50% 0px' });
-    sections.forEach(s => navIo.observe(s));
 
-    // ── SMOOTH SCROLL ────────────────────────────────────────────
-    document.querySelectorAll('a[href^="#"]').forEach(a => {
-      a.addEventListener('click', e => {
-        const t = document.querySelector(a.getAttribute('href'));
-        if (!t) return;
-        e.preventDefault();
-        window.scrollTo({ top: t.offsetTop - 68, behavior: 'smooth' });
+        html += `</section>`;
+
+        // Nav link
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="#${slug}">${cat.nome.toUpperCase()}</a>`;
+        navLinks.appendChild(li);
       });
+
+      container.innerHTML = html;
+      loading.style.display = 'none';
+
+      // ── PÓS-RENDER: RE-APPLY ANIMATIONS ──────────────────────
+
+      // Stagger + direction nos porcao-card
+      document.querySelectorAll('.porcao-card').forEach((el, i) => {
+        el.classList.add('reveal', i % 2 === 0 ? 'from-left' : 'from-right');
+      });
+
+      // Scroll reveal observer
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            const siblings = [...e.target.parentElement.querySelectorAll('.reveal')];
+            const i = siblings.indexOf(e.target);
+            e.target.style.transitionDelay = (i * 0.07) + 's';
+            e.target.classList.add('visible');
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+      document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+      // Card tilt
+      document.querySelectorAll('.porcao-card, .caip-card').forEach(card => {
+        card.addEventListener('mousemove', e => {
+          const r = card.getBoundingClientRect();
+          const x = ((e.clientX - r.left) / r.width  - 0.5) * 14;
+          const y = ((e.clientY - r.top)  / r.height - 0.5) * 14;
+          card.style.transform = `perspective(600px) rotateY(${x}deg) rotateX(${-y}deg) translateY(-4px)`;
+        });
+        card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+      });
+
+      // Active nav
+      const sections = document.querySelectorAll('section[id]');
+      const navAs    = document.querySelectorAll('.nav-links a');
+      const navIo    = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            navAs.forEach(a => a.classList.remove('active'));
+            const a = document.querySelector(`.nav-links a[href="#${e.target.id}"]`);
+            if (a) a.classList.add('active');
+          }
+        });
+      }, { rootMargin: '-40% 0px -50% 0px' });
+      sections.forEach(s => navIo.observe(s));
+
+      // Smooth scroll
+      document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+          const t = document.querySelector(a.getAttribute('href'));
+          if (!t) return;
+          e.preventDefault();
+          window.scrollTo({ top: t.offsetTop - 68, behavior: 'smooth' });
+        });
+      });
+    }
+
+    // ── BOOT ─────────────────────────────────────────────────────
+    renderCardapio().catch(err => {
+      console.error('Erro ao carregar cardápio:', err);
+      const loading = document.getElementById('_loading');
+      if (loading) loading.innerHTML = '<p style="color:#c0392b;font-size:.8rem;letter-spacing:.08em">Erro ao carregar. Atualize a página.</p>';
     });
 
     // ── SERVICE WORKER ────────────────────────────────────────────
